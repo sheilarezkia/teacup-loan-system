@@ -1,0 +1,23 @@
+name: CI/CD
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+strategy:
+  max-parallel: 1
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+      - name: Run tests on accounts service
+        run: cd teacup-loan-accounts && chmod +x ./gradlew && ./gradlew test && cd ..
+      - name: Run tests on purchases service
+        run: cd teacup-loan-purchases && chmod +x ./gradlew && ./gradlew test && cd ..
+      - name: Run tests on payments service
+        run: cd teacup-loan-payments && chmod +x ./gradlew && ./gradlew test && cd ..

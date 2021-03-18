@@ -1,11 +1,9 @@
-name: CI/CD
+name: Unit Tests
 on:
   push:
     branches:
       - main
   workflow_dispatch:
-strategy:
-  max-parallel: 1
 jobs:
   test:
     runs-on: ubuntu-latest

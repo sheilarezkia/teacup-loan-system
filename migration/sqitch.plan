@@ -3,3 +3,4 @@
 %uri=https://github.com/sheilarezkia/teacup-loan-system.git
 
 schema 2021-03-19T08:01:06Z System Administrator <root@192.168.1.5> # Add database schema
+accounts [schema] 2021-03-19T08:40:09Z System Administrator <root@192.168.1.5> # Creates accounts table

@@ -10,4 +10,9 @@ class TeacupLoanAccountsApplicationTests {
 	void contextLoads() {
 	}
 
+	@Test
+	public void applicationContextTest() {
+		TeacupLoanAccountsApplication.main(new String[] {});
+	}
+
 }

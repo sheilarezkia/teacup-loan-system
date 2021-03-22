@@ -1,14 +1,15 @@
 # Tea-Cup Loan System  
 A mini project (hence the name) created as a way for me  to accustom myself to the practices of TDD, OOP, domain-driven design, & benchmarking and to have a hands-on experience with micro-services built & set-up by tech stacks of the following:  
  - [X] SpringBoot
- - [X] Postgres
+ - [X] Postgres + Sqitch change management
  - [ ] JSON RPC
  - [ ] Cache
- - [ ] Docker and CI/CD - later on deployed on AWS
+ - [ ] Docker 
+ - [ ] CI/CD - later on deployed on AWS
 
 ### An Overview
 The app you'll be seeing is a dummy design of how I understand/imagine a loan system under the grand scheme, where simply put you have loan accounts making purchases, resulting in multiple payments that each of those loan account needs to complete.
-With this simple requirement, I've decided to create 3 services, **accounts**, **purchases**, and **payments**.
+With this simple requirement, I've decided to create 3 services, **accounts**, **purchases**, and **payments**. Each of these are expected to run on individual machines, communicating with each other using RPC calls.
 
 ### A Closer Look & Design
 #### Account
@@ -26,7 +27,6 @@ Each payment record has a due date as the time at which the customer has to pay 
 
 ### Running the Services Locally
 
-#### Partial Build
+#### Running with Docker
 
-#### Without Docker
-#### With Docker
+#### Deployment

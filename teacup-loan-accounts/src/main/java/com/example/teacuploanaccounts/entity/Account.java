@@ -29,6 +29,10 @@ public class Account {
         this.maxLimit = maxLimit;
     }
 
+    public Account() {
+
+    }
+
     public int getId() {
         return id;
     }

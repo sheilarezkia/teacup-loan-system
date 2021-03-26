@@ -20,6 +20,7 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-jdbc'
     testImplementation group: 'com.h2database', name: 'h2', version: '1.4.200'
+	testImplementation group: 'org.mockito', name: 'mockito-core', version: '3.8.0'
 	testImplementation 'junit:junit:4.12'
 	implementation 'junit:junit:4.12'
 }

@@ -2,6 +2,7 @@ package com.example.teacuploanaccounts.controller;
 
 import com.example.teacuploanaccounts.entity.Account;
 import com.example.teacuploanaccounts.entity.AccountRepository;
+import org.junit.Before;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
@@ -40,8 +41,8 @@ public class AccountControllerTests {
     @MockBean
     private AccountRepository accountRepository;
 
-    @BeforeEach
-    public void setup () {
+    @Before
+    public void setUp () {
         DefaultMockMvcBuilder builder = MockMvcBuilders.webAppContextSetup(this.wac);
         mockMvc = builder.build();
     }
@@ -73,5 +74,56 @@ public class AccountControllerTests {
                         "  \"id\": 1,\n" +
                         "  \"currentLimit\": 500000\n" +
                         "}"));
+    }
+
+    @Test
+    public void testHandleValidLimitSubtractionRequest() throws Exception {
+        Account mockAccount = new Account("John Doe", "62000001", 500000, 5000000);
+        mockAccount.id = 1;
+
+        Mockito.when(accountRepository.findById(1)).thenReturn(Optional.of(mockAccount));
+
+        MockHttpServletRequestBuilder builder =
+                MockMvcRequestBuilders.put("/api/accounts/1/limit-subtraction/20000");
+
+        this.mockMvc.perform(builder)
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(content().json("{\n" +
+                        "  \"id\": 1,\n" +
+                        "  \"currentLimit\": 480000,\n" +
+                        "  \"maxLimit\": 5000000\n" +
+                        "}"));
+    }
+
+    @Test
+    public void testHandleExceedingLimitSubtractionRequest() throws Exception {
+        Account mockAccount = new Account("John Doe", "62000001", 500000, 5000000);
+
+        Mockito.when(accountRepository.findById(1)).thenReturn(Optional.of(mockAccount));
+
+        MockHttpServletRequestBuilder builder =
+                MockMvcRequestBuilders.put("/api/accounts/1/limit-subtraction/600000");
+
+        this.mockMvc.perform(builder)
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(content().json("{\n" +
+                        "  \"message\": \"Amount to subtract exceeds account's current limit\"\n" +
+                        "}")
+                );
+    }
+
+    @Test
+    public void testHandleRequestWithNonExistingAccountId() throws Exception {
+        Mockito.when(accountRepository.findById(1)).thenReturn(Optional.empty());
+
+        MockHttpServletRequestBuilder builder =
+                MockMvcRequestBuilders.put("/api/accounts/1/limit-subtraction/600000");
+
+        this.mockMvc.perform(builder)
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andExpect(content().json("{\n" +
+                        "  \"message\": \"Cannot find an account of id 1\"\n" +
+                        "}")
+                );
     }
 }

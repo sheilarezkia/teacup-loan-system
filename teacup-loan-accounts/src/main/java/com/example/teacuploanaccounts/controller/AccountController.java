@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Collections;
 import java.util.Optional;
 
 @RestController
@@ -49,5 +51,49 @@ class AccountController {
 
         AccountCurrentLimitResponse responseObject = new AccountCurrentLimitResponse(parsedId, result.get().getCurrentLimit());
         return new ResponseEntity<>(responseObject, HttpStatus.OK);
+    }
+
+    @PutMapping("/{id}/limit-subtraction/{amount}")
+    public ResponseEntity subtractLimit(@PathVariable String id, @PathVariable  String amount) {
+        Long amountToSubtract;
+        try {
+            amountToSubtract = Long.parseLong(amount);
+        } catch (NumberFormatException e) {
+            return ResponseEntity.badRequest()
+                    .body(Collections.singletonMap("message", "Invalid amount given on param"));
+        }
+
+        Integer parsedId;
+        try {
+            parsedId = Integer.parseInt(id);
+        } catch (NumberFormatException e) {
+            return ResponseEntity.badRequest()
+                    .body(Collections.singletonMap("message", "Invalid id given on param"));
+        }
+
+        Optional<Account> result = repository.findById(parsedId);
+
+        if (!result.isPresent()) {
+            return new ResponseEntity<>(
+                    Collections.singletonMap("message", "Cannot find an account of id " + id),
+                    HttpStatus.NOT_FOUND
+            );
+        }
+
+        Account account = result.get();
+        Long currentLimit = account.getCurrentLimit();
+
+        if (currentLimit < amountToSubtract) {
+            return ResponseEntity.badRequest()
+                    .body(
+                        Collections.singletonMap("message", "Amount to subtract exceeds account's current limit")
+                    );
+        } else {
+            account.setCurrentLimit(currentLimit - amountToSubtract);
+        }
+
+        repository.save(account);
+
+        return ResponseEntity.ok().body(account);
     }
 }

@@ -8,7 +8,7 @@ import javax.persistence.*;
 public class Account {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    public int id;
 
     @Column
     String holderName;
@@ -43,5 +43,9 @@ public class Account {
 
     public long getMaxLimit() {
         return this.maxLimit;
+    }
+
+    public void setCurrentLimit(Long currentLimit) {
+        this.currentLimit = currentLimit;
     }
 }

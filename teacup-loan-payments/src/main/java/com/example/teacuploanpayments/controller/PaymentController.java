@@ -42,9 +42,7 @@ public class PaymentController {
         if (invalidRequest) {
             return ResponseEntity
                 .badRequest()
-                .body(
-                    Collections.singletonMap("message", String.format("Invalid %s of 0", invalidRequestParam))
-                );
+                .body(Collections.singletonMap("message", String.format("Invalid %s of 0", invalidRequestParam)));
         }
 
         ArrayList<Payment> paymentList = new ArrayList<>();
@@ -62,9 +60,19 @@ public class PaymentController {
             paymentList.add(payment);
         }
 
-        Iterable<Payment> createdPayments = repository.saveAll(paymentList);
+        Iterable<Payment> createdPayments;
+        try {
+            createdPayments = repository.saveAll(paymentList);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Collections.singletonMap("message", "Found error in arguments given for payments"));
+        }
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdPayments);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(Collections.singletonMap(
+                    "payments",
+                    createdPayments
+                ));
 
     }
 }

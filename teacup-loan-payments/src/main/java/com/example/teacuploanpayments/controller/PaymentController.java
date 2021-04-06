@@ -2,24 +2,25 @@ package com.example.teacuploanpayments.controller;
 
 import com.example.teacuploanpayments.entity.Payment;
 import com.example.teacuploanpayments.entity.PaymentRepository;
+import com.example.teacuploanpayments.model.CompletePaymentRequest;
 import com.example.teacuploanpayments.model.CreatePaymentsForPurchaseRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/payments")
 public class PaymentController {
-    double monthlyInstallmentInterest = 2.5 / 100;
+    private String PaymentStatusUnpaid = "payment_unpaid";
+    private String PaymentStatusPaid = "payment_paid";
+    private double monthlyInstallmentInterest = 2.5 / 100;
 
     @Autowired
     PaymentRepository repository;
@@ -59,7 +60,7 @@ public class PaymentController {
             Payment payment = new Payment(
                 request.purchaseId,
                 billAmount,
-                "payment_unpaid",
+                PaymentStatusUnpaid,
                 Timestamp.from(Instant.now().plusSeconds(3600*30*(i+1))),
                 null,
                 paymentNumber
@@ -82,5 +83,38 @@ public class PaymentController {
                     createdPayments
                 ));
 
+    }
+
+    @PutMapping("/completion")
+    public ResponseEntity CompletePayment(@RequestBody CompletePaymentRequest request) {
+        Optional<Payment> queryResult = repository.findById(request.paymentId);
+        if (!queryResult.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                Collections.singletonMap(
+                    "message",
+                    String.format("Payment with id %d", request.paymentId)
+                )
+            );
+        }
+
+        Payment payment = queryResult.get();
+
+        if (payment.getBillAmount() != request.paidAmount) {
+            return ResponseEntity.badRequest().body(
+                Collections.singletonMap("message", "Amount paid doesn't match payment bill amount")
+            );
+        } else if (!payment.getStatus().equals(PaymentStatusUnpaid)) {
+            return ResponseEntity.badRequest().body(
+                    Collections.singletonMap("message", "Payment is already paid")
+            );
+        }
+
+        payment.setPaidAt(Timestamp.from(Instant.now()));
+        payment.setStatus(PaymentStatusPaid);
+        repository.save(payment);
+
+        return ResponseEntity.ok().body(
+            Collections.singletonMap("message", "Successfully updated payment status")
+        );
     }
 }

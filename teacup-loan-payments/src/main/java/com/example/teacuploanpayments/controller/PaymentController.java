@@ -19,6 +19,8 @@ import java.util.Collections;
 @RestController
 @RequestMapping("/api/payments")
 public class PaymentController {
+    double monthlyInstallmentInterest = 2.5 / 100;
+
     @Autowired
     PaymentRepository repository;
 
@@ -47,14 +49,20 @@ public class PaymentController {
 
         ArrayList<Payment> paymentList = new ArrayList<>();
 
+        long principalAmount = request.purchaseAmount / request.installmentCount;
+
         for (int i = 0; i < request.installmentCount; i++) {
+            int paymentNumber = i + 1;
+            long interestAmount = (long)Math.ceil(principalAmount * Math.pow(monthlyInstallmentInterest, paymentNumber));
+            long billAmount = principalAmount + interestAmount;
+
             Payment payment = new Payment(
                 request.purchaseId,
-                (request.purchaseAmount / request.installmentCount),
+                billAmount,
                 "payment_unpaid",
                 Timestamp.from(Instant.now().plusSeconds(3600*30*(i+1))),
                 null,
-                i+1
+                paymentNumber
             );
 
             paymentList.add(payment);

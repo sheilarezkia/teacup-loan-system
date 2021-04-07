@@ -42,6 +42,9 @@ public class Purchase {
         this.status = status;
     }
 
+    public Purchase() {
+    }
+
     @PrePersist
     public void prePersist(){
         this.createdAt = new Timestamp(System.currentTimeMillis());
@@ -49,5 +52,9 @@ public class Purchase {
 
     public int getId() {
         return id;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

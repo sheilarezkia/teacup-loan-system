@@ -3,13 +3,12 @@ package com.example.teacuploanpurchases.controller;
 import com.example.teacuploanpurchases.entity.Purchase;
 import com.example.teacuploanpurchases.entity.PurchaseRepository;
 import com.example.teacuploanpurchases.model.CreatePurchaseRequest;
+import com.example.teacuploanpurchases.model.UpdatePurchaseStatusRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,10 +16,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
-import java.sql.SQLOutput;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/purchases")
@@ -32,6 +31,8 @@ public class PurchaseController {
     private String paymentsServiceUrl;
 
     private final String LOAN_DISBURSED_STATUS = "loan_disbursed";
+    private final String LOAN_CLOSED_STATUS = "loan_closed";
+    private final String LOAN_PENALTY_COLLECTION_STATUS = "loan_penalty_collection";
 
     RestTemplate restTemplate = new RestTemplate();
 
@@ -110,5 +111,41 @@ public class PurchaseController {
 
         return ResponseEntity.ok()
                 .body(Collections.singletonMap("id", purchaseCreated.getId()));
+    }
+
+    @PutMapping("/{id}/status-updates")
+    public ResponseEntity updatePurchaseStatus(
+            @PathVariable String id,
+            @RequestBody UpdatePurchaseStatusRequest request) {
+        String status = request.getStatus();
+        System.out.println("status on request:" + status);
+
+        if (!(status.equals(LOAN_CLOSED_STATUS) || status.equals(LOAN_PENALTY_COLLECTION_STATUS))) {
+            return ResponseEntity.badRequest().body(
+                    Collections.singletonMap("message", "Invalid loan status")
+            );
+        }
+
+        int purchaseId;
+        try {
+            purchaseId = Integer.parseInt(id);
+        } catch (NumberFormatException e) {
+            return ResponseEntity.badRequest().body(
+                    Collections.singletonMap("message", "Invalid purchase id on request")
+            );
+        }
+
+        Optional<Purchase> queryResult = repository.findById(purchaseId);
+        if (!queryResult.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    Collections.singletonMap("message", "Unable to find a purchase record with the given id")
+            );
+        }
+
+        Purchase purchase = queryResult.get();
+        purchase.setStatus(request.getStatus());
+        repository.save(purchase);
+
+        return ResponseEntity.noContent().build();
     }
 }

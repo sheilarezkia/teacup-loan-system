@@ -1,5 +1,6 @@
 package com.example.teacuploanpurchases.controller;
 
+import com.example.teacuploanpurchases.entity.Purchase;
 import com.example.teacuploanpurchases.entity.PurchaseRepository;
 import com.example.teacuploanpurchases.model.AccountServiceGetInfoResponse;
 import org.junit.Before;
@@ -18,6 +19,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -29,6 +31,7 @@ import org.springframework.test.web.servlet.setup.StandaloneMockMvcBuilder;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Map;
+import java.util.Optional;
 
 import static javax.swing.text.html.FormSubmitEvent.MethodType.POST;
 import static org.mockito.ArgumentMatchers.any;
@@ -37,23 +40,23 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 
 //@TODO: Tests aren't working. fix them
-//@RunWith(MockitoJUnitRunner.class)
-//@SpringBootTest()
-//@AutoConfigureMockMvc
+@RunWith(SpringRunner.class)
+@SpringBootTest()
+@AutoConfigureMockMvc
 public class PurchaseControllerTests {
 //    @Autowired
 //    private WebApplicationContext wac;
 
-//    @Autowired
-//    private MockMvc mockMvc;
+    @Autowired
+    private MockMvc mockMvc;
 //
 //    @InjectMocks
 //    private PurchaseController purchaseController;
 //    @MockBean
 //    RestTemplate restTemplate;
 //
-//    @MockBean
-//    private PurchaseRepository purchaseRepository;
+    @MockBean
+    private PurchaseRepository purchaseRepository;
 //
 //    @BeforeEach
 //    public void setUp () {
@@ -71,6 +74,77 @@ public class PurchaseControllerTests {
 //                any(String.class)))
 //                .thenReturn(ResponseEntity.ok(null));
 //    }
+
+    @Test
+    public void tesUpdatePurchaseStatusWithValidRequest() throws Exception {
+        Purchase mockPurchaseRecord = new Purchase(
+                1,
+                "mock purchase object",
+                1000,
+                12,
+                "loan_disbursed"
+        );
+        Mockito.when(purchaseRepository.findById(1)).thenReturn(Optional.of(mockPurchaseRecord));
+
+        String mockUpdatePurchaseStatusRequest = "{\"status\": \"loan_closed\"}";
+        MockHttpServletRequestBuilder builder =
+            MockMvcRequestBuilders.put("/api/purchases/1/status-updates")
+                .contentType(MediaType.APPLICATION_JSON).content(mockUpdatePurchaseStatusRequest);
+
+        this.mockMvc
+                .perform(builder)
+                .andExpect(MockMvcResultMatchers.status().isNoContent());
+    }
+
+    @Test
+    public void tesUpdatePurchaseStatusWithInvalidStatus() throws Exception {
+        String mockUpdatePurchaseStatusRequest = "{\"status\": \"dummy_invalid_status\"}";
+        MockHttpServletRequestBuilder builder =
+            MockMvcRequestBuilders.put("/api/purchases/1/status-updates")
+                .contentType(MediaType.APPLICATION_JSON).content(mockUpdatePurchaseStatusRequest);
+
+        this.mockMvc
+            .perform(builder)
+            .andExpect(MockMvcResultMatchers.status().isBadRequest())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.message")
+                .value("Invalid loan status"))
+            .andDo(MockMvcResultHandlers.print());
+    }
+
+    @Test
+    public void tesUpdatePurchaseStatusWithInvalidIdParam() throws Exception {
+        String mockUpdatePurchaseStatusRequest = "{\"status\": \"loan_closed\"}";
+        MockHttpServletRequestBuilder builder =
+            MockMvcRequestBuilders.put("/api/purchases/invalid-id/status-updates")
+                .contentType(MediaType.APPLICATION_JSON).content(mockUpdatePurchaseStatusRequest);
+
+        this.mockMvc
+            .perform(builder)
+            .andExpect(MockMvcResultMatchers.status().isBadRequest())
+            .andExpect(
+                MockMvcResultMatchers.jsonPath("$.message")
+                    .value("Invalid purchase id on request"))
+            .andDo(MockMvcResultHandlers.print());
+    }
+
+    @Test
+    public void testMockPurchaseRecordNotFoundReturns404() throws Exception {
+        Mockito.when(purchaseRepository.findById(1)).thenReturn(Optional.empty());
+
+        String mockUpdatePurchaseStatusRequest = "{\"status\": \"loan_closed\"}";
+        MockHttpServletRequestBuilder builder =
+            MockMvcRequestBuilders.put("/api/purchases/1/status-updates")
+                .contentType(MediaType.APPLICATION_JSON).content(mockUpdatePurchaseStatusRequest);
+
+        this.mockMvc
+            .perform(builder)
+            .andExpect(MockMvcResultMatchers.status().isNotFound())
+            .andExpect(
+                MockMvcResultMatchers.jsonPath("$.message")
+                    .value("Unable to find a purchase record with the given id"))
+            .andDo(MockMvcResultHandlers.print());
+    }
+
 //
 //
 //    @Test

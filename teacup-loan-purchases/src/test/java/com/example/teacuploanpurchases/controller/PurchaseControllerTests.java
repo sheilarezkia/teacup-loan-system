@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.client.MockRestServiceServer;
@@ -19,38 +21,37 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.context.WebApplicationContext;
 
 import java.util.Optional;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest()
-@AutoConfigureMockMvc
-public class PurchaseControllerTests {
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withBadRequest;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 
+@RunWith(SpringRunner.class)
+@AutoConfigureMockMvc
+@SpringBootTest
+public class PurchaseControllerTests {
+    @Autowired
     private MockMvc mockMvc;
 
     @Value( "${account.service}" )
     private String accountsServiceUrl;
 
-    @Autowired
-    private WebApplicationContext webApplicationContext;
-
-    private RestTemplate restTemplate;
+    @Value( "${payment.service}" )
+    private String paymentsServiceUrl;
 
     @MockBean
     private PurchaseRepository purchaseRepository;
     private MockRestServiceServer mockServer;
 
+    @Autowired
+    RestTemplate restTemplate;
+
     @BeforeEach
     public void setUp () {
-        restTemplate = new RestTemplate();
-        mockMvc = MockMvcBuilders
-                .webAppContextSetup(webApplicationContext)
-                .build();
-        mockServer = MockRestServiceServer.bindTo(restTemplate).build();
+        this.mockServer = MockRestServiceServer.bindTo(restTemplate).build();
     }
 
     @Test
@@ -123,61 +124,69 @@ public class PurchaseControllerTests {
             .andDo(MockMvcResultHandlers.print());
     }
 
-//    @Test
-//    public void testControllerHandleCreatePurchaseRequestWithValidRequestedLoanAmount() throws Exception {
-//        String limitSubstractionUrl = accountsServiceUrl + "/api/accounts/1/limit-subtraction/5000";
-//
-//        this.mockServer.expect(requestTo(limitSubstractionUrl))
-//                .andExpect(method(HttpMethod.PUT))
-//                .andRespond(withStatus(HttpStatus.OK)
-//                );
-//
-//        String mockCreatePurchaseRequest = "{" +
-//                "\"accountId\":1," +
-//                "\"description\":\"Test create purchase\"," +
-//                "\"amount\":5000," +
-//                "\"installmentPeriodMonth\":12" +
-//                "}";
-//
-//        MockHttpServletRequestBuilder builder = MockMvcRequestBuilders
-//                .post("/api/purchases")
-//                .contentType(MediaType.APPLICATION_JSON)
-//                .content(mockCreatePurchaseRequest);
-//
-//        this.mockMvc
-//                .perform(builder)
-//                .andExpect(MockMvcResultMatchers.status().isOk())
-//                .andDo(MockMvcResultHandlers.print());
-//    }
+    @Test
+    public void testControllerHandleCreatePurchaseRequestWithValidRequestedLoanAmount() throws Exception {
+        String limitSubstractionUrl = accountsServiceUrl + "/1/limit-subtraction/5000";
+        String createPaymentsUrl = paymentsServiceUrl + "/";
 
-//    @Test
-//    public void testControllerHandleCreatePurchaseRequestWithInvalidRequestedLoanAmount() throws Exception {
-//        String mockCreatePurchaseRequest = "{" +
-//                "\"accountId\":1," +
-//                "\"description\":\"Test create purchase\"," +
-//                "\"amount\":15000," +
-//                "\"installmentPeriodMonth\":12" +
-//                "}";
-//
-//        MockHttpServletRequestBuilder builder = MockMvcRequestBuilders
-//                .post("/api/purchases")
-//                .contentType(MediaType.APPLICATION_JSON)
-//                .content(mockCreatePurchaseRequest);
-//
-//        String limitSubstractionUrl = accountsServiceUrl + "/api/accounts/1/limit-subtraction/5000";
-//
-//        this.mockServer.expect(requestTo(limitSubstractionUrl))
-//                .andExpect(method(HttpMethod.PUT))
-//                .andRespond(withStatus(HttpStatus.OK)
-//                );
-//
-//        this.mockMvc
-//                .perform(builder)
-//                .andExpect(MockMvcResultMatchers.status().isBadRequest())
-//                .andExpect(
-//                        MockMvcResultMatchers.content()
-//                                .string("Can't create a purchase of amount 15000")
-//                )
-//                .andDo(MockMvcResultHandlers.print());
-//    }
+        this.mockServer.expect(requestTo(limitSubstractionUrl))
+            .andExpect(method(HttpMethod.PUT))
+            .andRespond(withStatus(HttpStatus.OK)
+            .contentType(MediaType.APPLICATION_JSON)
+            );
+
+        this.mockServer.expect(requestTo(createPaymentsUrl))
+            .andExpect(method(HttpMethod.POST))
+            .andRespond(withStatus(HttpStatus.CREATED)
+                .contentType(MediaType.APPLICATION_JSON)
+            );
+
+        Mockito.when(purchaseRepository.save(Mockito.any(Purchase.class)))
+            .thenReturn(new Purchase());
+
+        String mockCreatePurchaseRequest = "{" +
+            "\"accountId\":1," +
+            "\"description\":\"Test create purchase\"," +
+            "\"amount\":5000," +
+            "\"installmentPeriodMonth\":12" +
+        "}";
+
+        MockHttpServletRequestBuilder builder = MockMvcRequestBuilders
+            .post("/api/purchases")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(mockCreatePurchaseRequest);
+
+        this.mockMvc
+            .perform(builder)
+            .andExpect(MockMvcResultMatchers.status().isOk());
+        this.mockServer.verify();
+    }
+
+    @Test
+    public void testControllerHandleCreatePurchaseRequestWithInvalidRequestedLoanAmount() throws Exception {
+        String mockCreatePurchaseRequest = "{" +
+            "\"accountId\":1," +
+            "\"description\":\"Test create purchase\"," +
+            "\"amount\":15000," +
+            "\"installmentPeriodMonth\":12" +
+            "}";
+
+        String limitSubstractionUrl = accountsServiceUrl + "/1/limit-subtraction/15000";
+        String mockExpectedResponse = "{\"message\":\"Amount to subtract exceeds account's current limit\"}";
+
+        this.mockServer.expect(requestTo(limitSubstractionUrl))
+            .andExpect(method(HttpMethod.PUT))
+            .andRespond(withBadRequest().body(mockExpectedResponse));
+
+        MockHttpServletRequestBuilder builder = MockMvcRequestBuilders
+            .post("/api/purchases")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(mockCreatePurchaseRequest);
+
+        this.mockMvc
+            .perform(builder)
+            .andExpect(MockMvcResultMatchers.status().isBadRequest())
+            .andExpect(MockMvcResultMatchers.content().string(mockExpectedResponse))
+            .andDo(MockMvcResultHandlers.print());
+    }
 }

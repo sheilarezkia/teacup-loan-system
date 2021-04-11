@@ -8,6 +8,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.context.annotation.Bean;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -34,10 +36,16 @@ public class PurchaseController {
     private final String LOAN_CLOSED_STATUS = "loan_closed";
     private final String LOAN_PENALTY_COLLECTION_STATUS = "loan_penalty_collection";
 
-    RestTemplate restTemplate = new RestTemplate();
+    @Autowired
+    RestTemplate restTemplate;
 
     @Autowired
     PurchaseRepository repository;
+
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
 
     @PostMapping()
     public ResponseEntity createPurchase(@RequestBody CreatePurchaseRequest request) {
@@ -61,6 +69,7 @@ public class PurchaseController {
         Map<String, Object> subtractLimitParam = new HashMap<>();
         subtractLimitParam.put("id", request.getAccountId());
         subtractLimitParam.put("amount", requestAmount);
+
 
         try {
             restTemplate.exchange(

@@ -28,6 +28,13 @@ dependencies {
 
 test {
 	useJUnitPlatform()
+	finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+	reports {
+		xml.enabled true
+	}
 }
 
 sonarqube {

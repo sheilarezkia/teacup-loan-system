@@ -10,7 +10,7 @@ on:
     types:
       - completed
 jobs:
-  build accounts:
+  build-accounts:
     name: Build for accounts service
     runs-on: ubuntu-latest
     steps:
@@ -38,7 +38,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: cd teacup-loan-accounts && ./gradlew build sonarqube --info && cd ..
-  build purchases:
+  build-purchases:
     name: Build for purchases service
     runs-on: ubuntu-latest
     steps:
@@ -66,7 +66,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: cd teacup-loan-purchases && ./gradlew build sonarqube --info && cd ..
-  build payments:
+  build-payments:
     name: Build for payments service
     runs-on: ubuntu-latest
     steps:

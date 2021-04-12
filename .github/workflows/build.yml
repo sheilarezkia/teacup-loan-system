@@ -36,7 +36,7 @@ jobs:
       - name: Build and analyze
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_ACCOUNTS }}
         run: cd teacup-loan-accounts && ./gradlew build sonarqube --info && cd ..
   build-purchases:
     name: Build for purchases service
@@ -64,7 +64,7 @@ jobs:
       - name: Build and analyze
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_PURCHASES }}
         run: cd teacup-loan-purchases && ./gradlew build sonarqube --info && cd ..
   build-payments:
     name: Build for payments service
@@ -92,5 +92,5 @@ jobs:
       - name: Build and analyze
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_PAYMENTS }}
         run: cd teacup-loan-payments && ./gradlew build sonarqube --info && cd ..

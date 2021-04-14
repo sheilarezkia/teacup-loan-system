@@ -7,6 +7,9 @@ A mini project (hence the name) created as a way for me  to accustom myself to t
  - [ ] Docker 
  - [ ] CI/CD - later on deployed on AWS
 
+![Unit Tests](https://github.com/sheilarezkia/teacup-loan-system/actions/workflows/unit-tests.yml/badge.svg)
+![Build](https://github.com/sheilarezkia/teacup-loan-system/actions/workflows/build.yml/badge.svg)
+
 ### An Overview
 The app you'll be seeing is a dummy design of how I understand/imagine a loan system under the grand scheme, where simply put you have loan accounts making purchases, resulting in multiple payments that each of those loan account needs to complete.
 With this simple requirement, I've decided to create 3 services, **accounts**, **purchases**, and **payments**. Each of these are expected to run on individual machines, communicating with each other using RPC calls.

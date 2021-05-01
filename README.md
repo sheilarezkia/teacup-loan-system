@@ -4,11 +4,12 @@ A mini project (hence the name) created as a way for me  to accustom myself to t
  - [X] Postgres + Sqitch change management
  - [ ] JSON RPC
  - [ ] Cache
- - [ ] Docker 
- - [ ] CI/CD - later on deployed on AWS
+ - [X] Docker 
+ - [X] CI/CD - later on deployed on AWS
 
-![Unit Tests](https://github.com/sheilarezkia/teacup-loan-system/actions/workflows/unit-tests.yml/badge.svg)
-![Build](https://github.com/sheilarezkia/teacup-loan-system/actions/workflows/build.yml/badge.svg)
+![Accounts CI/CD](https://github.com/sheilarezkia/teacup-loan-system/actions/workflows/accounts-cicd.yml/badge.svg)
+![Purchases CI/CD](https://github.com/sheilarezkia/teacup-loan-system/actions/workflows/purchases-cicd.yml/badge.svg)
+![Payments CI/CD](https://github.com/sheilarezkia/teacup-loan-system/actions/workflows/payments-cicd.yml/badge.svg)
 
 ### An Overview
 The app you'll be seeing is a dummy design of how I understand/imagine a loan system under the grand scheme, where simply put you have loan accounts making purchases, resulting in multiple payments that each of those loan account needs to complete.

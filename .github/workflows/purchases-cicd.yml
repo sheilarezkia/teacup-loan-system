@@ -8,7 +8,7 @@ env:
   REPOSITORY_PURCHASES: teacup-purchases
   SERVICE_PURCHASES: teacup-purchases
   ECS_CLUSTER: teacup-system
-  TASK_PURCHASES: ../../.aws/task-definition-purchases.json
+  TASK_PURCHASES: .aws/task-definition-purchases.json
   CONTAINER_PURCHASES: teacup-purchases
 
 defaults:

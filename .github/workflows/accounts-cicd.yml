@@ -9,7 +9,7 @@ env:
   REPOSITORY_ACCOUNTS: teacup-accounts
   SERVICE_ACCOUNTS: teacup-accounts
   ECS_CLUSTER: teacup-system
-  TASK_ACCOUNTS: ../../.aws/task-definition-accounts.json
+  TASK_ACCOUNTS: .aws/task-definition-accounts.json
   CONTAINER_ACCOUNTS: teacup-accounts
 
 defaults:

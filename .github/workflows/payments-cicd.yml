@@ -9,7 +9,7 @@ env:
   REPOSITORY_PAYMENTS: teacup-payments
   SERVICE_PAYMENTS: teacup-payments
   ECS_CLUSTER: teacup-system
-  TASK_PAYMENTS: ../../.aws/task-definition-payments.json
+  TASK_PAYMENTS: .aws/task-definition-payments.json
   CONTAINER_PAYMENTS: teacup-payments
 
 defaults:

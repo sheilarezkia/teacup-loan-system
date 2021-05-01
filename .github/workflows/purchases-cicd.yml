@@ -1,4 +1,4 @@
-name: Deploy to Amazon ECS
+name: CI/CD for Purchases Service
 on:
   push:
     branches:
@@ -55,6 +55,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_PURCHASES }}
         run: cd teacup-loan-purchases && ./gradlew build sonarqube --info && cd ..
+      - name: Archive build artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: purchases-app
+          path: teacup-loan-purchases/build/libs/*.jar
+
   deploy:
     name: Deploy Purchases Service
     runs-on: ubuntu-latest
@@ -74,16 +80,21 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
+      - name: Get previous purchases service build
+        uses: actions/download-artifact@v2
+        with:
+          name: purchases-app
+          path: teacup-loan-purchases/
+
+
       - name: Build, tag, and push image to Amazon ECR
         id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.sha }}
+          IMAGE_TAG: latest
+        working-directory: teacup-loan-purchases/
         run: |
-          # Build a docker container and
-          # push it to ECR so that it can
-          # be deployed to ECS.
-          docker build -t $ECR_REGISTRY/$REPOSITORY_PURCHASES:$IMAGE_TAG .
+          docker build -t $ECR_REGISTRY/$REPOSITORY_PURCHASES:$IMAGE_TAG -f Dockerfile .
           docker push $ECR_REGISTRY/$REPOSITORY_PURCHASES:$IMAGE_TAG
           echo "::set-output name=image::$ECR_REGISTRY/$REPOSITORY_PURCHASES:$IMAGE_TAG"
 

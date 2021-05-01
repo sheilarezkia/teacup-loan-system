@@ -53,9 +53,15 @@ jobs:
           restore-keys: ${{ runner.os }}-gradle
       - name: Build and analyze
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_ACCOUNTS }}
         run: cd teacup-loan-accounts && ./gradlew build sonarqube --info && cd ..
+      - name: Archive build artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          path: teacup-loan-accounts/build/libs/*.jar
+          name: accounts-app
+
   deploy:
     name: Deploy Accounts Service
     runs-on: ubuntu-latest
@@ -75,16 +81,20 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
+      - name: Get previous accounts service build
+        uses: actions/download-artifact@v2
+        with:
+          name: accounts-app
+          path: teacup-loan-accounts/
+
       - name: Build, tag, and push image to Amazon ECR
         id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.sha }}
+          IMAGE_TAG: latest
+        working-directory: teacup-loan-accounts/
         run: |
-          # Build a docker container and
-          # push it to ECR so that it can
-          # be deployed to ECS.
-          docker build -t $ECR_REGISTRY/$REPOSITORY_ACCOUNTS:$IMAGE_TAG .
+          docker build -t $ECR_REGISTRY/$REPOSITORY_ACCOUNTS:$IMAGE_TAG -f Dockerfile .
           docker push $ECR_REGISTRY/$REPOSITORY_ACCOUNTS:$IMAGE_TAG
           echo "::set-output name=image::$ECR_REGISTRY/$REPOSITORY_ACCOUNTS:$IMAGE_TAG"
 

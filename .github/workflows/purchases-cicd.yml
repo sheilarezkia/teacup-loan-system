@@ -3,6 +3,9 @@ on:
   push:
     branches:
       - main
+    paths:
+      - teacup-loan-purchases/
+
 env:
   AWS_REGION: ap-southeast-1
   REPOSITORY_PURCHASES: teacup-purchases

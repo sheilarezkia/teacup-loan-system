@@ -3,6 +3,9 @@ on:
   push:
     branches:
       - main
+    paths:
+      - teacup-loan-payments/
+
 
 env:
   AWS_REGION: ap-southeast-1
